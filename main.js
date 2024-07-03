@@ -1,61 +1,97 @@
-const guessInput = document.getElementById('guess-input');
-const guessButton = document.getElementById('guess-button');
-const messageDisplay = document.getElementById('message');
-const attemptsDisplay = document.getElementById('attempts');
-const scoreDisplay = document.getElementById('score');
-const restartButton = document.getElementById('restart-button');
+const gameContainer = document.getElementById('game-container');
+const totalPairs = 4; // Number of pairs, so total cards will be 2 * totalPairs + 1
 
-let randomNumber;
-let attempts;
-let score;
+let hasFlippedCard = false;
+let lockBoard = false;
+let firstCard, secondCard;
 
-function initGame() {
-    randomNumber = Math.floor(Math.random() * 100) + 1;
-    attempts = 0;
-    score = 0;
-    guessInput.value = '';
-    messageDisplay.textContent = '';
-    attemptsDisplay.textContent = attempts;
-    scoreDisplay.textContent = score;
-    restartButton.style.display = 'none';
+// Generate random numbers for cards
+let cardNumbers = [];
+for (let i = 1; i <= totalPairs; i++) {
+    cardNumbers.push(i, i); // Each number will appear twice (to make pairs)
 }
+// Add an extra card with a unique number
+cardNumbers.push(totalPairs + 1);
 
-function updateScore(result) {
-    if (result === 'Correct!') {
-        score += 10 - attempts;
+// Shuffle function to randomize array
+function shuffle(array) {
+    for (let i = array.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [array[i], array[j]] = [array[j], array[i]];
     }
-    scoreDisplay.textContent = score;
+    return array;
 }
 
-function checkGuess() {
-    const playerGuess = parseInt(guessInput.value);
-    if (isNaN(playerGuess) || playerGuess < 1 || playerGuess > 100) {
-        messageDisplay.textContent = 'Please enter a number between 1 and 100.';
+// Shuffle card numbers
+cardNumbers = shuffle(cardNumbers);
+
+// Create card elements
+for (let i = 0; i < cardNumbers.length; i++) {
+    const card = document.createElement('div');
+    card.classList.add('card');
+    card.dataset.framework = cardNumbers[i];
+
+    const frontFace = document.createElement('div');
+    frontFace.classList.add('front-face');
+    frontFace.textContent = cardNumbers[i];
+
+    const backFace = document.createElement('div');
+    backFace.classList.add('back-face');
+    backFace.textContent = '?';
+
+    card.appendChild(frontFace);
+    card.appendChild(backFace);
+
+    gameContainer.appendChild(card);
+
+    // Add click event listener to each card
+    card.addEventListener('click', flipCard);
+}
+
+function flipCard() {
+    if (lockBoard) return;
+    if (this === firstCard) return;
+
+    this.classList.add('flip');
+
+    if (!hasFlippedCard) {
+        // first click
+        hasFlippedCard = true;
+        firstCard = this;
         return;
     }
 
-    attempts++;
-    attemptsDisplay.textContent = attempts;
+    // second click
+    secondCard = this;
 
-    if (playerGuess === randomNumber) {
-        messageDisplay.textContent = 'Correct! You guessed the number!';
-        updateScore('Correct!');
-        restartButton.style.display = 'block';
-        guessButton.disabled = true;
-        guessInput.disabled = true;
-    } else if (playerGuess < randomNumber) {
-        messageDisplay.textContent = 'Too low! Try again.';
-    } else {
-        messageDisplay.textContent = 'Too high! Try again.';
-    }
+    checkForMatch();
 }
 
-guessButton.addEventListener('click', checkGuess);
-restartButton.addEventListener('click', () => {
-    guessButton.disabled = false;
-    guessInput.disabled = false;
-    initGame();
-});
+function checkForMatch() {
+    let isMatch = firstCard.dataset.framework === secondCard.dataset.framework;
 
-// Initialize the game when the page loads
-initGame();
+    isMatch ? disableCards() : unflipCards();
+}
+
+function disableCards() {
+    firstCard.removeEventListener('click', flipCard);
+    secondCard.removeEventListener('click', flipCard);
+
+    resetBoard();
+}
+
+function unflipCards() {
+    lockBoard = true;
+
+    setTimeout(() => {
+        firstCard.classList.remove('flip');
+        secondCard.classList.remove('flip');
+
+        resetBoard();
+    }, 1500);
+}
+
+function resetBoard() {
+    [hasFlippedCard, lockBoard] = [false, false];
+    [firstCard, secondCard] = [null, null];
+}

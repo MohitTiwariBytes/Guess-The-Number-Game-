@@ -3,19 +3,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Guess the Number</title>
+    <title>Memory Match Game</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
-    <div class="game-container">
-        <h1>Guess the Number</h1>
-        <p>Guess a number between 1 and 100</p>
-        <input type="number" id="guess-input" placeholder="Enter your guess">
-        <button id="guess-button">Guess</button>
-        <p id="message"></p>
-        <p>Attempts: <span id="attempts">0</span></p>
-        <p>Score: <span id="score">0</span></p>
-        <button id="restart-button" style="display: none;">Restart</button>
+    <div class="game-container" id="game-container">
+        <!-- Cards will be dynamically generated here -->
     </div>
     <script src="main.js"></script>
 </body>
